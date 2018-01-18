@@ -54,16 +54,16 @@ lncRmR<-function(miRlncRCandidate,miRmRCandidate,ExpData,ExpDataNames){
         ## Initialize variables
         miRExpIdx=c()
         lncRmRInt=matrix(NA,m3*m4,2)
-        R=matrix(NA,m3*m4,3)
+        R=matrix(NA,m3*m4,5)
 
         for (i in 1:m3){
               for (j in 1:m4){
 
-                 kk_1=(sum(K1[1:i-1])+1):sum(K1[1:i])
+                 kk_1=(sum(K1[1:(i-1)])+1):sum(K1[1:i])
                  Interin1=miRlncRCandidate[kk_1,1]
              
-                 kk_2=(sum(K2[1:j-1])+1):sum(K2[1:j])
-                 Interin2=miRmRCandidate[kk_2,1]              
+                 kk_2=(sum(K2[1:(j-1)])+1):sum(K2[1:j])
+                 Interin2=miRmRCandidate[kk_2,1]                 
 
                  ## Calculate significance of common miRNAs shared by each lncRNA-mRNA pair
 		 M1=length(Interin1)
@@ -74,9 +74,9 @@ lncRmR<-function(miRlncRCandidate,miRmRCandidate,ExpData,ExpDataNames){
                                                       
               if (M3>2 & M5<0.01){
                         
-			lncRmRInt[(i-1)*m3+j,1]=lncRNA[i]
-                        lncRmRInt[(i-1)*m3+j,2]=mRNA[j]
-						
+                        lncRmRInt[(i-1)*m3+j,1]=lncRNA[i]
+                        lncRmRInt[(i-1)*m3+j,2]=mRNA[j]                      
+					
                         lncRExpIdx= which(ExpDataNames==lncRNA[i,1])
                         mRExpIdx= which(ExpDataNames==mRNA[j,1])
                         
@@ -84,18 +84,20 @@ lncRmR<-function(miRlncRCandidate,miRmRCandidate,ExpData,ExpDataNames){
 			M6=cor.test(ExpData[,lncRExpIdx],ExpData[,mRExpIdx])$estimate
                         M7=cor.test(ExpData[,lncRExpIdx],ExpData[,mRExpIdx])$p.value
                         
-		        R[(i-1)*m3+j,1]=M5
-                        R[(i-1)*m3+j,2]=M6
-			R[(i-1)*m3+j,3]=M7
+                        R[(i-1)*m3+j,1]=M3
+                        R[(i-1)*m3+j,2]=paste(intersect(Interin1,Interin2), collapse = ", ")
+		        R[(i-1)*m3+j,3]=M5
+                        R[(i-1)*m3+j,4]=M6
+			R[(i-1)*m3+j,5]=M7
               }
                                   
           }
         }
 
 ## Extract positive correlated lncRNA-mRNA pairs, the p-values are adjusted by BH method.
-lncRmRInt=lncRmRInt[which((p.adjust(R[,1],method="BH")<0.01 & R[,2]>0 & p.adjust(R[,3],method="BH")<0.01)=='TRUE'),]
-RlncRmR=R[which((p.adjust(R[,1],method="BH")<0.01 & R[,2]>0 & p.adjust(R[,3],method="BH")<0.01)=='TRUE'),]
-PClncRmR=cbind(lncRmRInt,RlncRmR)
+lncRmRInt=lncRmRInt[which((R[, 1] > 2 & p.adjust(R[, 3],method="BH") < 0.01 & R[, 4] > 0 & p.adjust(R[, 5],method="BH") < 0.01)=='TRUE'),]
+RlncRmR=R[which((R[, 1] > 2 & p.adjust(R[, 3],method="BH") < 0.01 & R[, 4] > 0 & p.adjust(R[, 5],method="BH") < 0.01)=='TRUE'),]
+PClncRmR=cbind(lncRmRInt, RlncRmR)
 
 return(PClncRmR)
 }
