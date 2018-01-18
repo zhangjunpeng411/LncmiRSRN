@@ -63,10 +63,7 @@ lncRmR<-function(miRlncRCandidate,miRmRCandidate,ExpData,ExpDataNames){
                  Interin1=miRlncRCandidate[kk_1,1]
              
                  kk_2=(sum(K2[1:j-1])+1):sum(K2[1:j])
-                 Interin2=miRmRCandidate[kk_2,1]
-              
-                 lncRmRInt[(i-1)*m3+j,1]=lncRNA[i]
-                 lncRmRInt[(i-1)*m3+j,2]=mRNA[j]
+                 Interin2=miRmRCandidate[kk_2,1]              
 
                  ## Calculate significance of common miRNAs shared by each lncRNA-mRNA pair
 		 M1=length(Interin1)
