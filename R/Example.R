@@ -7,7 +7,7 @@ source("LncmiRSCN.R")
 load("Expression_Data.RData")
 
 ## Extracting candidate miRNA-target interactions by integrating putative miRNA-target interactions with expression data
-miRmRbinding="miRTarBase_v6.1+TarBase_v7.0+miRWalk_v2.0.csv"
+miRmRbinding="miRTarBase_v7.0+TarBase_v7.0_High.csv"
 miRlncRbinding="NPInter_v3.0+LncBase_v2.csv"
 lncR=1:9704
 mR=9705:27986
@@ -45,17 +45,42 @@ Causal_Score_LSCC=IDA_parallel(Sponge_Exp_LSCC,1:length(unique(PClncRmR_LSCC[,1]
 Causal_Score_OvCa=IDA_parallel(Sponge_Exp_OvCa,1:length(unique(PClncRmR_OvCa[,1])),(length(unique(PClncRmR_OvCa[,1]))+1):length(c(unique(PClncRmR_OvCa[,1]),unique(PClncRmR_OvCa[,2]))),"parallel",0.01, 6)
 Causal_Score_PrCa=IDA_parallel(Sponge_Exp_PrCa,1:length(unique(PClncRmR_PrCa[,1])),(length(unique(PClncRmR_PrCa[,1]))+1):length(c(unique(PClncRmR_PrCa[,1]),unique(PClncRmR_PrCa[,2]))),"parallel",0.01, 6)
 
-# For compromise, the cutoff of absolute value of causal effects is set to 0.35. 
-Causal_lncRmR_GBM=cbind(colnames(Causal_Score_GBM)[which(abs(Causal_Score_GBM)>=0.35,arr.ind = TRUE)[,2]],rownames(Causal_Score_GBM)[which(abs(Causal_Score_GBM)>=0.35,arr.ind = TRUE)[,1]])
-Causal_lncRmR_LSCC=cbind(colnames(Causal_Score_LSCC)[which(abs(Causal_Score_LSCC)>=0.35,arr.ind = TRUE)[,2]],rownames(Causal_Score_LSCC)[which(abs(Causal_Score_LSCC)>=0.35,arr.ind = TRUE)[,1]])
-Causal_lncRmR_OvCa=cbind(colnames(Causal_Score_OvCa)[which(abs(Causal_Score_OvCa)>=0.35,arr.ind = TRUE)[,2]],rownames(Causal_Score_OvCa)[which(abs(Causal_Score_OvCa)>=0.35,arr.ind = TRUE)[,1]])
-Causal_lncRmR_PrCa=cbind(colnames(Causal_Score_PrCa)[which(abs(Causal_Score_PrCa)>=0.35,arr.ind = TRUE)[,2]],rownames(Causal_Score_PrCa)[which(abs(Causal_Score_PrCa)>=0.35,arr.ind = TRUE)[,1]])
+# Calculate the Fisher's asymptotic p-values based on the causal effects that sponge lncRNAs on mRNAs 
+library(WGCNA)
+Causal_Score_GBM_normalize=Causal_Score_GBM
+Causal_Score_LSCC_normalize=Causal_Score_LSCC
+Causal_Score_OvCa_normalize=Causal_Score_OvCa
+Causal_Score_PrCa_normalize=Causal_Score_PrCa
 
-# Extracting causal effects between sponge lncRNAs and mRNAs
-Causal_Score_GBM_Effect=Causal_Score_GBM[abs(Causal_Score_GBM)>=0.35]
-Causal_Score_LSCC_Effect=Causal_Score_LSCC[abs(Causal_Score_LSCC)>=0.35]
-Causal_Score_OvCa_Effect=Causal_Score_OvCa[abs(Causal_Score_OvCa)>=0.35]
-Causal_Score_PrCa_Effect=Causal_Score_PrCa[abs(Causal_Score_PrCa)>=0.35]
+Causal_Score_GBM_normalize[which(Causal_Score_GBM_normalize>=1,arr.ind = TRUE)]=1
+Causal_Score_GBM_normalize[which(Causal_Score_GBM_normalize<=-1,arr.ind = TRUE)]=-1
+Causal_Score_LSCC_normalize[which(Causal_Score_LSCC_normalize>=1,arr.ind = TRUE)]=1
+Causal_Score_LSCC_normalize[which(Causal_Score_LSCC_normalize<=-1,arr.ind = TRUE)]=-1
+Causal_Score_OvCa_normalize[which(Causal_Score_OvCa_normalize>=1,arr.ind = TRUE)]=1
+Causal_Score_OvCa_normalize[which(Causal_Score_OvCa_normalize<=-1,arr.ind = TRUE)]=-1
+Causal_Score_PrCa_normalize[which(Causal_Score_PrCa_normalize>=1,arr.ind = TRUE)]=1
+Causal_Score_PrCa_normalize[which(Causal_Score_PrCa_normalize<=-1,arr.ind = TRUE)]=-1
+
+Causal_Score_GBM_pvalue=corPvalueFisher(Causal_Score_GBM_normalize, dim(Sponge_Exp_GBM)[1])
+Causal_Score_LSCC_pvalue=corPvalueFisher(Causal_Score_LSCC_normalize, dim(Sponge_Exp_LSCC)[1])
+Causal_Score_OvCa_pvalue=corPvalueFisher(Causal_Score_OvCa_normalize, dim(Sponge_Exp_OvCa)[1])
+Causal_Score_PrCa_pvalue=corPvalueFisher(Causal_Score_PrCa_normalize, dim(Sponge_Exp_PrCa)[1])
+
+Causal_Score_GBM_pvalue_adjust=matrix(p.adjust(c(Causal_Score_GBM_pvalue), method="BH"), nrow=dim(Causal_Score_GBM_pvalue)[1])
+Causal_Score_LSCC_pvalue_adjust=matrix(p.adjust(c(Causal_Score_LSCC_pvalue), method="BH"), nrow=dim(Causal_Score_LSCC_pvalue)[1])
+Causal_Score_OvCa_pvalue_adjust=matrix(p.adjust(c(Causal_Score_OvCa_pvalue), method="BH"), nrow=dim(Causal_Score_OvCa_pvalue)[1])
+Causal_Score_PrCa_pvalue_adjust=matrix(p.adjust(c(Causal_Score_PrCa_pvalue), method="BH"), nrow=dim(Causal_Score_PrCa_pvalue)[1])
+
+## Using Fisher's asymptotic p-values to evaluate strength of causal effects, the p-value cutoff is 0.05
+Causal_lncRmR_GBM=cbind(colnames(Causal_Score_GBM_pvalue)[which(Causal_Score_GBM_pvalue_adjust<0.05,arr.ind = TRUE)[,2]],rownames(Causal_Score_GBM_pvalue)[which(Causal_Score_GBM_pvalue_adjust<0.05,arr.ind = TRUE)[,1]])
+Causal_lncRmR_LSCC=cbind(colnames(Causal_Score_LSCC_pvalue)[which(Causal_Score_LSCC_pvalue_adjust<0.05,arr.ind = TRUE)[,2]],rownames(Causal_Score_LSCC_pvalue)[which(Causal_Score_LSCC_pvalue_adjust<0.05,arr.ind = TRUE)[,1]])
+Causal_lncRmR_OvCa=cbind(colnames(Causal_Score_OvCa_pvalue)[which(Causal_Score_OvCa_pvalue_adjust<0.05,arr.ind = TRUE)[,2]],rownames(Causal_Score_OvCa_pvalue)[which(Causal_Score_OvCa_pvalue_adjust<0.05,arr.ind = TRUE)[,1]])
+Causal_lncRmR_PrCa=cbind(colnames(Causal_Score_PrCa_pvalue)[which(Causal_Score_PrCa_pvalue_adjust<0.05,arr.ind = TRUE)[,2]],rownames(Causal_Score_PrCa_pvalue)[which(Causal_Score_PrCa_pvalue_adjust<0.05,arr.ind = TRUE)[,1]])
+
+Causal_Score_GBM_Effect=Causal_Score_GBM[Causal_Score_GBM_pvalue_adjust<0.05]
+Causal_Score_LSCC_Effect=Causal_Score_LSCC[Causal_Score_LSCC_pvalue_adjust<0.05]
+Causal_Score_OvCa_Effect=Causal_Score_OvCa[Causal_Score_OvCa_pvalue_adjust<0.05]
+Causal_Score_PrCa_Effect=Causal_Score_PrCa[Causal_Score_PrCa_pvalue_adjust<0.05]
 
 ## Generate lncRNA-related miRNA sponge causal networks
 library("igraph")
