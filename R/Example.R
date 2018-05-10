@@ -1,7 +1,7 @@
 #############################################################################
-## Main scripts for identifying lncRNA related miRNA sponge causal network ## 
+## Main scripts for identifying lncRNA related miRNA sponge regulatory network ## 
 #############################################################################
-source("LncmiRSCN.R")
+source("LncmiRSRN.R")
 
 ## Import matched lncRNA and mRNA expression data
 load("Expression_Data.RData")
@@ -29,7 +29,7 @@ PClncRmR_LSCC_graph=make_graph(c(t(PClncRmR_LSCC[,1:2])),directed = TRUE)
 PClncRmR_OvCa_graph=make_graph(c(t(PClncRmR_OvCa[,1:2])),directed = TRUE)
 PClncRmR_PrCa_graph=make_graph(c(t(PClncRmR_PrCa[,1:2])),directed = TRUE)
 
-## By using ParallelPC R package, we generate lncRNA-mRNA causal relationships from matched lncRNA and mRNA expression data. The lncRNAs and mRNAs are from lncRNA-mRNA related miRNA sponge interactions
+## By using ParallelPC R package, we generate lncRNA-mRNA regulatory relationships from matched lncRNA and mRNA expression data. The lncRNAs and mRNAs are from lncRNA-mRNA related miRNA sponge interactions
 library(ParallelPC)
 library(bnlearn)
 library(pcalg)
@@ -82,7 +82,7 @@ Causal_Score_LSCC_Effect=Causal_Score_LSCC[Causal_Score_LSCC_pvalue_adjust<0.05]
 Causal_Score_OvCa_Effect=Causal_Score_OvCa[Causal_Score_OvCa_pvalue_adjust<0.05]
 Causal_Score_PrCa_Effect=Causal_Score_PrCa[Causal_Score_PrCa_pvalue_adjust<0.05]
 
-## Generate lncRNA-related miRNA sponge causal networks
+## Generate lncRNA-related miRNA sponge regulatory networks
 library("igraph")
 Causal_lncRmR_GBM_graph=make_graph(c(t(Causal_lncRmR_GBM)),directed = TRUE)
 Causal_lncRmR_LSCC_graph=make_graph(c(t(Causal_lncRmR_LSCC)),directed = TRUE)
@@ -94,7 +94,7 @@ Causal_Sponge_lncRmR_LSCC_graph=Causal_lncRmR_LSCC_graph %s% PClncRmR_LSCC_graph
 Causal_Sponge_lncRmR_OvCa_graph=Causal_lncRmR_OvCa_graph %s% PClncRmR_OvCa_graph
 Causal_Sponge_lncRmR_PrCa_graph=Causal_lncRmR_PrCa_graph %s% PClncRmR_PrCa_graph
 
-# Degree distribution of lncRNA-related miRNA sponge causal networks
+# Degree distribution of lncRNA-related miRNA sponge regulatory networks
 Causal_Sponge_lncRmR_GBM_Degree=degree(graph_from_data_frame(as_data_frame(Causal_Sponge_lncRmR_GBM_graph),directed=FALSE))
 Causal_Sponge_lncRmR_LSCC_Degree=degree(graph_from_data_frame(as_data_frame(Causal_Sponge_lncRmR_LSCC_graph),directed=FALSE))
 Causal_Sponge_lncRmR_OvCa_Degree=degree(graph_from_data_frame(as_data_frame(Causal_Sponge_lncRmR_OvCa_graph),directed=FALSE))
@@ -118,7 +118,7 @@ LSCC_OvCa_hub_Similarity=length(intersect(hub_lncRNAs_LSCC,hub_lncRNAs_OvCa))/mi
 LSCC_PrCa_hub_Similarity=length(intersect(hub_lncRNAs_LSCC,hub_lncRNAs_PrCa))/min(length(hub_lncRNAs_LSCC),length(hub_lncRNAs_PrCa))
 OvCa_PrCa_hub_Similarity=length(intersect(hub_lncRNAs_OvCa,hub_lncRNAs_PrCa))/min(length(hub_lncRNAs_OvCa),length(hub_lncRNAs_PrCa))
 
-## Differential and conserved LncmiRSCNs between GBM, LSCC, OvCa and PrCa
+## Differential and conserved LncmiRSRNs between GBM, LSCC, OvCa and PrCa
 Causal_Sponge_lncRmR_Unique_graph=(Causal_Sponge_lncRmR_GBM_graph %u% Causal_Sponge_lncRmR_LSCC_graph) %u% (Causal_Sponge_lncRmR_OvCa_graph %u% Causal_Sponge_lncRmR_PrCa_graph)
 Causal_Sponge_lncRmR_Unique_Interactions=as_data_frame(Causal_Sponge_lncRmR_Unique_graph)
 
@@ -131,11 +131,11 @@ Causal_Sponge_lncRmR_Differential_Interactions=as_data_frame(Causal_Sponge_lncRm
 Causal_Sponge_lncRmR_Conserved_graph=Causal_Sponge_lncRmR_Unique_graph %m% Causal_Sponge_lncRmR_Differential_graph
 Causal_Sponge_lncRmR_Conserved_Interactions=as_data_frame(Causal_Sponge_lncRmR_Conserved_graph)
 
-# Degree distribution of differential and conserved LncmiRSCNs
+# Degree distribution of differential and conserved LncmiRSRNs
 Causal_Sponge_lncRmR_Differential_Degree=degree(graph_from_data_frame(as_data_frame(Causal_Sponge_lncRmR_Differential_graph),directed=FALSE))
 Causal_Sponge_lncRmR_Conserved_Degree=degree(graph_from_data_frame(as_data_frame(Causal_Sponge_lncRmR_Conserved_graph),directed=FALSE))
 
-## Similarity between GBM, LSCC, OvCa and PrCa in terms of sponge lncRNA-mRNA causal interactions
+## Similarity between GBM, LSCC, OvCa and PrCa in terms of sponge lncRNA-mRNA regulatory relationships
 GBM_LSCC_Network_Similarity=dim(as_data_frame(Causal_Sponge_lncRmR_GBM_graph %s% Causal_Sponge_lncRmR_LSCC_graph))[1]/min(dim(as_data_frame(Causal_Sponge_lncRmR_GBM_graph))[1],dim(as_data_frame(Causal_Sponge_lncRmR_LSCC_graph))[1])
 GBM_OvCa_Network_Similarity=dim(as_data_frame(Causal_Sponge_lncRmR_GBM_graph %s% Causal_Sponge_lncRmR_OvCa_graph))[1]/min(dim(as_data_frame(Causal_Sponge_lncRmR_GBM_graph))[1],dim(as_data_frame(Causal_Sponge_lncRmR_OvCa_graph))[1])
 GBM_PrCa_Network_Similarity=dim(as_data_frame(Causal_Sponge_lncRmR_GBM_graph %s% Causal_Sponge_lncRmR_PrCa_graph))[1]/min(dim(as_data_frame(Causal_Sponge_lncRmR_GBM_graph))[1],dim(as_data_frame(Causal_Sponge_lncRmR_PrCa_graph))[1])
@@ -143,7 +143,7 @@ LSCC_OvCa_Network_Similarity=dim(as_data_frame(Causal_Sponge_lncRmR_LSCC_graph %
 LSCC_PrCa_Network_Similarity=dim(as_data_frame(Causal_Sponge_lncRmR_LSCC_graph %s% Causal_Sponge_lncRmR_PrCa_graph))[1]/min(dim(as_data_frame(Causal_Sponge_lncRmR_LSCC_graph))[1],dim(as_data_frame(Causal_Sponge_lncRmR_PrCa_graph))[1])
 OvCa_PrCa_Network_Similarity=dim(as_data_frame(Causal_Sponge_lncRmR_OvCa_graph %s% Causal_Sponge_lncRmR_PrCa_graph))[1]/min(dim(as_data_frame(Causal_Sponge_lncRmR_OvCa_graph))[1],dim(as_data_frame(Causal_Sponge_lncRmR_PrCa_graph))[1])
 
-## Identify differential and conserved LncmiRSCN network modules using MCL method
+## Identify differential and conserved LncmiRSRN network modules using MCL method
 library("ProNet")
 Causal_Sponge_lncRmR_Differential_MCLCluster=cluster(graph_from_data_frame(Causal_Sponge_lncRmR_Differential_Interactions,directed=FALSE),method="MCL",expansion = 2,inflation = 2,directed = FALSE,layout="fruchterman.reingold")
 res=Causal_Sponge_lncRmR_Differential_MCLCluster
@@ -194,7 +194,7 @@ for (i in 1:max(res)) {
 }
  
 
-## Survival analysis of differential and conserved LncmiRSCN network modules, we use predict.coxph function in survival package to calculate risk scores
+## Survival analysis of differential and conserved LncmiRSRN network modules, we use predict.coxph function in survival package to calculate risk scores
 GBM_Differential_Survival=SurvAnalyze(ExpData_GBM,ExpDataNames,"GBM_survival.csv",MCLCluster_Differential_Name)
 LSCC_Differential_Survival=SurvAnalyze(ExpData_LSCC,ExpDataNames,"LSCC_survival.csv",MCLCluster_Differential_Name)
 OvCa_Differential_Survival=SurvAnalyze(ExpData_OvCa,ExpDataNames,"OvCa_survival.csv",MCLCluster_Differential_Name)
@@ -205,7 +205,7 @@ LSCC_Conserved_Survival=SurvAnalyze(ExpData_LSCC,ExpDataNames,"LSCC_survival.csv
 OvCa_Conserved_Survival=SurvAnalyze(ExpData_OvCa,ExpDataNames,"OvCa_survival.csv",MCLCluster_Conserved_Name)
 PrCa_Conserved_Survival=SurvAnalyze(ExpData_PrCa,ExpDataNames,"PrCa_survival.csv",MCLCluster_Conserved_Name)
 
-## GO and KEGG enrichment analysis of differential and conserved LncmiRSCN network modules
+## GO and KEGG enrichment analysis of differential and conserved LncmiRSRN network modules
 library(clusterProfiler)
 library(org.Hs.eg.db)
 
@@ -219,7 +219,7 @@ Conserved_entrezIDs=lapply(1:length(MCLCluster_Conserved_Name), function(i) as.c
 Conserved_enrichGO=lapply(1:length(MCLCluster_Conserved_Name), function(i) enrichGO(Conserved_entrezIDs[[i]],OrgDb='org.Hs.eg.db',ont = "BP",pvalueCutoff=0.05))
 Conserved_enrichKEGG=lapply(1:length(MCLCluster_Conserved_Name), function(i) enrichKEGG(Conserved_entrezIDs[[i]], organism="hsa",pvalueCutoff=0.05))
 
-## Cancer gene enrichment of differential and conserved LncmiRSCN network modules
+## Cancer gene enrichment of differential and conserved LncmiRSRN network modules
 GBM_genes=read.csv("GBM_genes.csv",header=FALSE)
 LSCC_genes=read.csv("LSCC_genes.csv",header=FALSE)
 OvCa_genes=read.csv("OvCa_genes.csv",header=FALSE)
@@ -235,4 +235,4 @@ Conserved_LSCC_Num=lapply(1:length(MCLCluster_Conserved_Name), function(i) lengt
 Conserved_OvCa_Num=lapply(1:length(MCLCluster_Conserved_Name), function(i) length(intersect(MCLCluster_Conserved_Name[[i]],c(as.matrix(OvCa_genes)))))
 Conserved_PrCa_Num=lapply(1:length(MCLCluster_Conserved_Name), function(i) length(intersect(MCLCluster_Conserved_Name[[i]],c(as.matrix(PrCa_genes)))))
 
-save.image("LncmiRSCN_p.adjusted_value=0.01_GBM+LSCC+OvCa+PrCa.RData")
+save.image("LncmiRSRN_p.adjusted_value=0.01_GBM+LSCC+OvCa+PrCa.RData")
