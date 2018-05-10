@@ -1,5 +1,5 @@
 ######################################################################################################
-## LncmiRSCN: Identifying lncRNA related miRNA sponge causal network
+## LncmiRSRN: Identifying lncRNA related miRNA sponge regulatory network
 ## May 1st, 2017, written by Junpeng Zhang
 ######################################################################################################
 
@@ -102,7 +102,7 @@ PClncRmR=cbind(lncRmRInt, RlncRmR)
 return(PClncRmR)
 }
 
-## Survival analysis of differential and conserved LncmiRSCN network modules, we use predict.coxph function in survival package to calculate risk scores
+## Survival analysis of differential and conserved LncmiRSRN network modules, we use predict.coxph function in survival package to calculate risk scores
 SurvAnalyze<-function(ExpData,ExpDataNames,Survival_datacsv,MCLCluster_Name){
 library(survival)
 library(survcomp)
