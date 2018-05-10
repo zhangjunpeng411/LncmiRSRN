@@ -1,8 +1,8 @@
-LncmiRSCN R scripts
+LncmiRSRN R scripts
 
 ########################################################################
 
-LncmiRSCN: Identifying lncRNA related miRNA sponge causal network
+LncmiRSRN: Identifying lncRNA related miRNA sponge regulatory network
 
 May 1st, 2017, written by Junpeng Zhang
 
